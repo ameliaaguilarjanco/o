@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lámpara para Claudia</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap');
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #111;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .message {
+            position: absolute;
+            bottom: 150px;
+            font-family: 'Dancing Script', cursive;
+            font-size: 42px;
+            color: #ff66b3;
+            text-shadow: 0 0 15px rgba(255, 102, 179, 0.9);
+            opacity: 0;
+            transition: opacity 1.5s;
+            z-index: 10;
+            text-align: center;
+            width: 100%;
+        }
+
+        .message.visible {
+            opacity: 1;
+        }
+
+        .ceiling {
+            width: 100px;
+            height: 20px;
+            background-color: #333;
+            position: absolute;
+            top: 50px;
+        }
+
+        .cord {
+            width: 4px;
+            height: 150px;
+            background-color: #666;
+            position: absolute;
+            top: 70px;
+            transform-origin: top center;
+        }
+
+        .lamp {
+            width: 60px;
+            height: 30px;
+            background-color: #ddd;
+            border-radius: 50% 50% 0 0;
+            position: absolute;
+            top: 220px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .bulb {
+            width: 20px;
+            height: 30px;
+            background-color: #fff;
+            border-radius: 50%;
+            position: absolute;
+            top: 235px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            box-shadow: 0 0 20px 10px rgba(255, 200, 50, 0);
+            transition: opacity 0.5s, box-shadow 0.5s;
+        }
+
+        .bulb.on {
+            opacity: 1;
+            box-shadow: 0 0 30px 15px rgba(255, 220, 100, 0.8);
+        }
+
+        .light-effect {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(255,220,150,0.3) 0%, rgba(255,220,150,0) 70%);
+            opacity: 0;
+            transition: opacity 1s;
+            pointer-events: none;
+        }
+
+        .light-effect.on {
+            opacity: 1;
+        }
+
+        .switch {
+            position: absolute;
+            bottom: 50px;
+            width: 60px;
+            height: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .switch-base {
+            width: 30px;
+            height: 50px;
+            background-color: #333;
+            border-radius: 5px;
+            display: flex;
+            justify-content: center;
+            padding-top: 5px;
+        }
+
+        .switch-button {
+            width: 20px;
+            height: 30px;
+            background-color: #666;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .switch-button.on {
+            transform: translateY(10px);
+        }
+
+        .switch-label {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #ccc;
+        }
+
+        .heart {
+            position: absolute;
+            font-size: 20px;
+            color: #ff66b3;
+            top: -50px;
+            z-index: 5;
+            animation: fall linear infinite;
+            text-shadow: 0 0 5px rgba(255, 102, 179, 0.7);
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+            }
+        }
+
+        .music-control {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            color: white;
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .volume-control {
+            position: absolute;
+            bottom: 40px;
+            right: 20px;
+            width: 100px;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <div class="message">Te quiero mucho Claudia</div>
+    <div class="light-effect"></div>
+    <div class="ceiling"></div>
+    <div class="cord"></div>
+    <div class="lamp"></div>
+    <div class="bulb"></div>
+    
+    <div class="switch">
+        <div class="switch-base">
+            <div class="switch-button" onclick="toggleLamp()"></div>
+        </div>
+        <div class="switch-label">ON/OFF</div>
+    </div>
+
+    <!-- Reproductor de audio con tu archivo -->
+    <audio id="bgMusic" loop>
+        <source src="Download.mp4" type="audio/mp4">
+        Tu navegador no soporta audio HTML5
+    </audio>
+
+    <div class="music-control">Música: We Don't Talk Anymore - Selena Gomez</div>
+    <input type="range" class="volume-control" min="0" max="1" step="0.1" value="0.3">
+
+    <script>
+        let lampOn = false;
+        const bulb = document.querySelector('.bulb');
+        const switchButton = document.querySelector('.switch-button');
+        const cord = document.querySelector('.cord');
+        const message = document.querySelector('.message');
+        const lightEffect = document.querySelector('.light-effect');
+        const bgMusic = document.getElementById('bgMusic');
+        const volumeControl = document.querySelector('.volume-control');
+        let heartsInterval;
+
+        // Configuración inicial
+        function setup() {
+            bgMusic.volume = 0.3; // Volumen inicial 30%
+            
+            // Control de volumen
+            volumeControl.addEventListener('input', function() {
+                bgMusic.volume = this.value;
+            });
+        }
+
+        function createHeart() {
+            const heart = document.createElement('div');
+            heart.innerHTML = '❤';
+            heart.className = 'heart';
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.animationDuration = (Math.random() * 3 + 2) + 's';
+            document.body.appendChild(heart);
+            
+            setTimeout(() => {
+                heart.remove();
+            }, 5000);
+        }
+
+        function startHearts() {
+            heartsInterval = setInterval(createHeart, 300);
+        }
+
+        function stopHearts() {
+            clearInterval(heartsInterval);
+        }
+
+        function toggleLamp() {
+            lampOn = !lampOn;
+            
+            if (lampOn) {
+                bulb.classList.add('on');
+                switchButton.classList.add('on');
+                message.classList.add('visible');
+                lightEffect.classList.add('on');
+                startSwing();
+                startHearts();
+                bgMusic.play().catch(e => console.log("Error al reproducir:", e));
+            } else {
+                bulb.classList.remove('on');
+                switchButton.classList.remove('on');
+                message.classList.remove('visible');
+                lightEffect.classList.remove('on');
+                stopSwing();
+                stopHearts();
+                bgMusic.pause();
+                bgMusic.currentTime = 0;
+            }
+        }
+
+        function startSwing() {
+            let angle = 5;
+            let direction = 1;
+            let damping = 0.99;
+            
+            function swing() {
+                if (!lampOn) return;
+                
+                angle += 0.3 * direction;
+                angle *= damping;
+                
+                if (Math.abs(angle) < 0.5) {
+                    angle = 0;
+                }
+                
+                if (angle > 15 || angle < -15) {
+                    direction *= -1;
+                }
+                
+                cord.style.transform = `rotate(${angle}deg)`;
+                requestAnimationFrame(swing);
+            }
+            
+            swing();
+        }
+
+        function stopSwing() {
+            cord.style.transform = 'rotate(0deg)';
+        }
+
+        // Inicialización
+        window.addEventListener('load', setup);
+    </script>
+</body>
+</html>
